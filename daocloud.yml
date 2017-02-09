@@ -1,0 +1,28 @@
+phoenix:
+  image: daocloud.io/artsky/phoenix:latest
+  privileged: false
+  restart: always
+  links:
+  - mysql:db
+  expose:
+  - 80
+  environment:
+  - VIRTUAL_HOST=www.artsky.beta
+  - VIRTUAL_PORT=80
+mysql:
+  image: daocloud.io/library/mysql:latest
+  privileged: false
+  restart: always
+  volumes:
+  - /docker/data/mysql_phoenix:/var/lib/mysql
+  environment:
+  - MYSQL_ROOT_PASSWORD=kongyishu2016
+elk:
+  image: daocloud.io/artsky/elkforsymfony:latest
+  expose:
+  - 80
+  environment:
+  - VIRTUAL_HOST=elk.artsky.beta
+  - VIRTUAL_PORT=80
+  volumes_from:
+  - phoenix

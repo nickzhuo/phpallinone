@@ -1,0 +1,20 @@
+version: '2'
+
+services:
+    phoenix:
+      image: daocloud.io/artsky/phoenix:latest
+      privileged: false
+      restart: always
+      links:
+      - mysql:db
+      ports:
+      - 8080:80
+    mysql:
+      image: daocloud.io/library/mysql:5.7.16
+      privileged: false
+      restart: always
+      ports:
+      - 3316:3306
+      environment:
+      - MYSQL_ROOT_PASSWORD=kongyishu2016
+      
