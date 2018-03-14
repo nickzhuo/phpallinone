@@ -1,10 +1,10 @@
 # 舟哥全功能PHP栈 nICKZHUO_PHP_FULL_STACK_ALL_IN_ONE
 ## 说明
-基于Docker的PHP7.1容器，专为Symfony设计。
+基于Docker的PHP7.1容器，专为Symfony设计。准备换alpine版本的基础镜像，减少容量。
 
 ## 配置
-* Nginx: 1.11.9
-* PHP: 7.1.1
+* Nginx: 1.13.9
+* PHP: 7.2.3
 * Redis客户端: 3.0.0
 * Composer: 最新版
 * Swoole: 2.0.5

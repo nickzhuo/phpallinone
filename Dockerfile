@@ -2,8 +2,8 @@ FROM centos:7
 # 舟哥的PHP7全功能技术栈 专为symfony准备
 MAINTAINER nICKZHUO <sidewindermax@hotmail.com>
 
-ENV NGINX_VERSION 1.11.9
-ENV PHP_VERSION 7.1.1
+ENV NGINX_VERSION 1.13.9
+ENV PHP_VERSION 7.2.3
 
 # 安装基本编译模块
 RUN set -x && \
