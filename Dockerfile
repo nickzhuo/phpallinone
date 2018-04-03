@@ -90,7 +90,7 @@ RUN docker-php-ext-configure gd \
       --with-png-dir=/usr/include/ \
       --with-jpeg-dir=/usr/include/
 
-RUN docker-php-ext-install pdo_mysql mysqli gd exif intl json opcache
+RUN docker-php-ext-install pdo_mysql mysqli gd exif fileinfo intl json opcache
 
 RUN docker-php-ext-enable redis.so && \
   docker-php-ext-enable mcrypt.so && \
