@@ -27,6 +27,7 @@ RUN addgroup -S www \
     curl \
     gnupg \
     libxslt-dev \
+    gd-dev \
     geoip-dev \
     perl-dev
   
@@ -82,7 +83,14 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
 RUN pecl install mcrypt-1.0.1 && \
     pecl install redis
 
-RUN docker-php-ext-install pdo_mysql mysqli exif intl json opcache
+# 跑GD要配置下
+RUN docker-php-ext-configure gd \
+      --with-gd \
+      --with-freetype-dir=/usr/include/ \
+      --with-png-dir=/usr/include/ \
+      --with-jpeg-dir=/usr/include/
+
+RUN docker-php-ext-install pdo_mysql mysqli gd exif intl json opcache
 
 RUN docker-php-ext-enable redis.so && \
   docker-php-ext-enable mcrypt.so && \
@@ -123,7 +131,7 @@ RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
 RUN sed -i \
     -e "s/;catch_workers_output\s*=\s*yes/catch_workers_output = yes/g" \
     # 时区改改
-    -e 's/^;date.timezone =/date.timezone = PRC/g' \
+    -e 's/^;date.timezone =/date.timezone = Asia\/Shanghai/g' \
     -e "s/pm.max_children = 5/pm.max_children = 4/g" \
     -e "s/pm.start_servers = 2/pm.start_servers = 3/g" \
     -e "s/pm.min_spare_servers = 1/pm.min_spare_servers = 2/g" \
