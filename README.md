@@ -3,8 +3,8 @@
 基于Docker的PHP7.2容器，专为Symfony4设计，开启opcache。基于alpine版本的基础镜像，减少容量。
 
 ## 配置
-* Nginx: 1.13.10
-* PHP: 7.2.3
+* Nginx: 1.15.2
+* PHP: 7.2.8
 * Redis客户端: 4.0.0
 * Composer: 最新版
 * ALPINE: 3.7
