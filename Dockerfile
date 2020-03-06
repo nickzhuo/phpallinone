@@ -1,4 +1,4 @@
-FROM php:7.2.8-fpm-alpine3.7
+FROM php:7.4.3-fpm-alpine
 
 LABEL maintainer="nICKZHUO <sidewindermax@hotmail.com>"
 
@@ -7,7 +7,7 @@ ENV fpm_conf /usr/local/etc/php-fpm.d/www.conf
 ENV php_vars /usr/local/etc/php/conf.d/docker-vars.ini
 
 # Nginx版本
-ENV NGINX_VERSION 1.15.2
+ENV NGINX_VERSION 1.16
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing gnu-libiconv
