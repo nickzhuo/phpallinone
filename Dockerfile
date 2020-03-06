@@ -86,10 +86,9 @@ RUN pecl install mcrypt-1.0.3 && \
 
 # 跑GD要配置下
 RUN docker-php-ext-configure gd \
-      --with-gd \
-      --with-freetype-dir=/usr/include/ \
-      --with-png-dir=/usr/include/ \
-      --with-jpeg-dir=/usr/include/
+      --enable-gd \
+      --with-freetype \
+      --with-jpeg
 
 RUN docker-php-ext-install pdo_mysql mysqli gd exif fileinfo intl json opcache
 
