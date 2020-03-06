@@ -1,13 +1,13 @@
 # 舟哥全功能PHP栈 nICKZHUO_PHP_FULL_STACK_ALL_IN_ONE
 ## 说明
-基于Docker的PHP7.2容器，专为Symfony4设计，开启opcache。基于alpine版本的基础镜像，减少容量。
+基于Docker的PHP7.4容器，专为Symfony4设计，开启opcache。基于alpine版本的基础镜像，减少容量。
 
 ## 配置
-* Nginx: 1.13.10
-* PHP: 7.2.3
+* Nginx: 1.16
+* PHP: 7.4.3
 * Redis客户端: 4.0.0
 * Composer: 最新版
-* ALPINE: 3.7
+* ALPINE: 3.11
 
 ## 详细说明
 * 专门为了跑symfony做的容器，一个nginx，一个php7fpm，以及PHP的周边扩展。为了更好的兼容（docker中volume顺序会导致chown权限丢失等问题），去掉了volume的挂载，作为base镜像，建议在子镜像中开启挂载或者手工命令行挂载，避免问题。
