@@ -81,7 +81,7 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
     libjpeg-turbo-dev
 
 # 必须这样装mcrypt
-RUN pecl install mcrypt-1.0.1 && \
+RUN pecl install mcrypt-1.0.3 && \
     pecl install redis
 
 # 跑GD要配置下
