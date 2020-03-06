@@ -1,6 +1,6 @@
 # 舟哥全功能PHP栈 nICKZHUO_PHP_FULL_STACK_ALL_IN_ONE
 ## 说明
-基于Docker的PHP7.4容器，专为Symfony4设计，开启opcache。基于alpine版本的基础镜像，减少容量。
+基于Docker的PHP7.4容器，专为Symfony4设计（兼容symfony5），开启opcache。基于alpine版本的基础镜像，减少容量。
 
 ## 配置
 * Nginx: 1.16
@@ -23,6 +23,7 @@
 ## 使用说明
 * 可以fork或者基于该镜像制作子镜像。
 * 参考快速使用说明，直接使用本镜像。
+* monolog最好自己控制一下自己的需要。
 
 ## 快速使用说明
 * 可以使用 docker build 命令来构建属于自己的本地镜像，但是原则上不推荐，考虑到速度以及docker版本差异等。
