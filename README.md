@@ -2,6 +2,9 @@
 ## 说明
 基于Docker的PHP7.4容器，专为Symfony4设计（兼容symfony5），开启opcache。基于alpine版本的基础镜像，减少容量。
 
+## 直接最新已构建完成镜像
+* 可以拉取腾讯云TKE镜像中心 ccr.ccs.tencentyun.com/zhouzhou/phpallinone
+
 ## 配置
 * Nginx: 1.16.1
 * PHP: 7.4.3
