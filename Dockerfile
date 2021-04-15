@@ -60,7 +60,7 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
     curl \
     libcurl \
     python3 \
-    python3-devel \
+    python3-dev \
     py-pip \
     augeas-dev \
     openssl-dev \
