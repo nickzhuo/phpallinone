@@ -48,6 +48,7 @@ RUN addgroup -S www \
       --with-http_gzip_static_module && \
       make && make install
 
+# alpine 3.13升级之后直接指定py-pip可以隐式装掉python
 RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories && \
 #    sed -i -e "s/v3.4/edge/" /etc/apk/repositories && \
     echo /etc/apk/respositories && \
@@ -58,8 +59,6 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
     supervisor \
     curl \
     libcurl \
-    python \
-    python-dev \
     py-pip \
     augeas-dev \
     openssl-dev \
