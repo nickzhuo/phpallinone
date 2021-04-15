@@ -48,7 +48,7 @@ RUN addgroup -S www \
       --with-http_gzip_static_module && \
       make && make install
 
-# alpine 3.13升级之后直接 安装python需要指定
+# alpine 3.13升级之后指定py 
 RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories && \
 #    sed -i -e "s/v3.4/edge/" /etc/apk/repositories && \
     echo /etc/apk/respositories && \
@@ -105,7 +105,8 @@ RUN EXPECTED_COMPOSER_SIGNATURE=$(wget -q -O - https://composer.github.io/instal
     php -r "unlink('composer-setup.php');"
 
 # 安装pip相关    
-RUN pip install -U certbot && \
+RUN pip install -U pip && \
+    pip install -U certbot && \
     mkdir -p /etc/letsencrypt/webrootauth && \
     apk del gcc musl-dev linux-headers libffi-dev augeas-dev make autoconf
 
