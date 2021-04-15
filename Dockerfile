@@ -62,6 +62,7 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
     python3 \
     python3-dev \
     rust \
+    cargo \
     py-pip \
     augeas-dev \
     openssl-dev \
