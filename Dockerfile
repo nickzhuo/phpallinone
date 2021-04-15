@@ -1,4 +1,4 @@
-FROM php:7.4.3-fpm-alpine
+FROM php:7-fpm-alpine
 
 LABEL maintainer="nICKZHUO <sidewindermax@hotmail.com>"
 
@@ -7,7 +7,7 @@ ENV fpm_conf /usr/local/etc/php-fpm.d/www.conf
 ENV php_vars /usr/local/etc/php/conf.d/docker-vars.ini
 
 # Nginx版本
-ENV NGINX_VERSION 1.16.1
+ENV NGINX_VERSION 1.19.10
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing gnu-libiconv
@@ -121,14 +121,25 @@ ADD ./conf/supervisord/nginx.conf /etc/supervisor/
 COPY ./conf/nginx/nginx.conf /usr/local/nginx/conf/
 COPY ./conf/nginx/symfony.conf /usr/local/nginx/conf/vhost/
 
-# 优化 php-fpm 配置
+# 修改 生产环境的 php.ini 基于默认的来吧
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
+# 把需要覆盖的配置都放到一起
 RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
+    echo "opcache.enable=1" >> ${php_vars} &&\
+    echo "opcache.enable_cli=1" >> ${php_vars} &&\
+    echo "opcache.memory_consumption=256" >> ${php_vars} &&\
+    echo "opcache.max_accelerated_files=20000" >> ${php_vars} &&\
+    echo "opcache.validate_timestamps=0" >> ${php_vars} &&\
+    echo "realpath_cache_size = 4096K" >> ${php_vars} &&\
+    echo "realpath_cache_ttl = 600" >> ${php_vars} &&\
     echo "upload_max_filesize = 100M"  >> ${php_vars} &&\
     echo "post_max_size = 100M"  >> ${php_vars} &&\
     echo "variables_order = \"EGPCS\""  >> ${php_vars} && \
     echo "memory_limit = 128M"  >> ${php_vars} && \
     echo "date.timezone =  Asia/Shanghai"  >> ${php_vars}
-    
+
+# 优化 php-fpm 配置
 RUN sed -i \
     -e "s/;catch_workers_output\s*=\s*yes/catch_workers_output = yes/g" \
     -e "s/pm.max_children = 5/pm.max_children = 4/g" \
