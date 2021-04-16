@@ -1,20 +1,24 @@
 # 舟哥全功能PHP栈 nICKZHUO_PHP_FULL_STACK_ALL_IN_ONE
 ## 说明
-基于Docker的PHP7.4容器，专为Symfony4设计（兼容symfony5），开启opcache。基于alpine版本的基础镜像，减少容量。
+基于Docker的PHP7.4容器，专为Symfony4设计（兼容symfony5），开启opcache。基于alpine版本的基础镜像，减少容量，根据Symfony手册优化了性能。
 
 ## 直接最新已构建完成镜像
 * 可以拉取腾讯云TKE镜像中心 ccr.ccs.tencentyun.com/zhouzhou/phpallinone
 
+# 更新说明
+* 21.4.15 修正了基础镜像升级到alphine 3.13之后python相关编译出的问题。
+
 ## 配置
 * Nginx: 1.16.1
-* PHP: 7.4.3
+* PHP: 7.4 最新版
 * Redis客户端: 4.0.0
-* Composer: 最新版
-* ALPINE: 3.11
+* Composer: 最新版 v2
+* ALPINE: 3.13
 
 ## 详细说明
 * 专门为了跑symfony做的容器，一个nginx，一个php7fpm，以及PHP的周边扩展。为了更好的兼容（docker中volume顺序会导致chown权限丢失等问题），去掉了volume的挂载，作为base镜像，建议在子镜像中开启挂载或者手工命令行挂载，避免问题。
 * 请将自己的symfony项目放到/data/www目录，站点默认读取public目录(symfony4默认web根目录，可以根据需要自己改成app目录兼容老symfony项目)，配合启动命令启动。
+* 需要preload.php的可以在下挂的Symfony容器里往/usr/local/etc/php/conf.d/docker-vars.ini写配置，先写opcache.preload=preload路径，然后不要忘记加入opcache.preload_user=www。
 
 ## 目录结构说明
 * code - 存放了一个phpinfo的查看演示文件，启动之后80端口显示。
