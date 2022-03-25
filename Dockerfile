@@ -1,4 +1,4 @@
-FROM php:7-fpm-alpine
+FROM php:8.1.4-fpm-alpine3.15
 
 LABEL maintainer="nICKZHUO <sidewindermax@hotmail.com>"
 
@@ -7,7 +7,7 @@ ENV fpm_conf /usr/local/etc/php-fpm.d/www.conf
 ENV php_vars /usr/local/etc/php/conf.d/docker-vars.ini
 
 # Nginx版本
-ENV NGINX_VERSION 1.16.1
+ENV NGINX_VERSION 1.21.6
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing gnu-libiconv
@@ -83,9 +83,9 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
     sqlite-dev \
     libjpeg-turbo-dev
 
-# 必须这样装mcrypt
-RUN pecl install mcrypt-1.0.3 && \
-    pecl install redis
+# 新php8不用mcrypt 加入apcu
+RUN pecl install redis && \
+    pecl install apcu
 
 # 跑GD要配置下
 RUN docker-php-ext-configure gd \
@@ -96,7 +96,7 @@ RUN docker-php-ext-configure gd \
 RUN docker-php-ext-install pdo_mysql mysqli gd exif fileinfo intl json opcache
 
 RUN docker-php-ext-enable redis.so && \
-  docker-php-ext-enable mcrypt.so && \
+  docker-php-ext-enable apcu.so && \
   docker-php-source delete
 
 # 安装composer    
@@ -127,13 +127,15 @@ COPY ./conf/nginx/symfony.conf /usr/local/nginx/conf/vhost/
 # 修改 生产环境的 php.ini 基于默认的来吧
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-# 把需要覆盖的配置都放到一起
+# 把需要覆盖的配置都放到一起 加入php8的jit配置
 RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
     echo "opcache.enable=1" >> ${php_vars} &&\
     echo "opcache.enable_cli=1" >> ${php_vars} &&\
     echo "opcache.memory_consumption=256" >> ${php_vars} &&\
     echo "opcache.max_accelerated_files=20000" >> ${php_vars} &&\
     echo "opcache.validate_timestamps=0" >> ${php_vars} &&\
+    echo "opcache.jit=1205" >> ${php_vars} &&\
+    echo "opcache.jit_buffer_size=64M" >> ${php_vars} &&\
     echo "realpath_cache_size = 4096K" >> ${php_vars} &&\
     echo "realpath_cache_ttl = 600" >> ${php_vars} &&\
     echo "upload_max_filesize = 100M"  >> ${php_vars} &&\
