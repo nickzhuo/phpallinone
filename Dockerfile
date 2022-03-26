@@ -48,7 +48,7 @@ RUN addgroup -S www \
       --with-http_gzip_static_module && \
       make && make install
 
-# alpine 3.13升级之后指定py 
+# alpine 3.13升级之后指定py3
 RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories && \
 #    sed -i -e "s/v3.4/edge/" /etc/apk/repositories && \
     echo /etc/apk/respositories && \
@@ -63,7 +63,7 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
     python3-dev \
     rust \
     cargo \
-    py-pip \
+    py3-pip \
     augeas-dev \
     openssl-dev \
     ca-certificates \
