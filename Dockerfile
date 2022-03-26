@@ -97,6 +97,7 @@ RUN docker-php-ext-configure gd \
 RUN docker-php-ext-install pdo_mysql mysqli gd exif fileinfo intl opcache
 
 RUN docker-php-ext-enable redis.so && \
+  docker-php-ext-enable mcrypt.so && \
   docker-php-ext-enable apcu.so && \
   docker-php-source delete
 
