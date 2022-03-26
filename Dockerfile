@@ -83,7 +83,7 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
     sqlite-dev \
     libjpeg-turbo-dev
 
-# 新php8不用mcrypt 加入apcu
+# 加入mcrypt 加入apcu
 RUN pecl install mcrypt && \
     pecl install redis && \
     pecl install apcu
@@ -135,8 +135,8 @@ RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
     echo "opcache.memory_consumption=256" >> ${php_vars} &&\
     echo "opcache.max_accelerated_files=20000" >> ${php_vars} &&\
     echo "opcache.validate_timestamps=0" >> ${php_vars} &&\
-    echo "opcache.jit=1205" >> ${php_vars} &&\
-    echo "opcache.jit_buffer_size=64M" >> ${php_vars} &&\
+    # echo "opcache.jit=1205" >> ${php_vars} &&\
+    # echo "opcache.jit_buffer_size=64M" >> ${php_vars} &&\
     echo "realpath_cache_size = 4096K" >> ${php_vars} &&\
     echo "realpath_cache_ttl = 600" >> ${php_vars} &&\
     echo "upload_max_filesize = 100M"  >> ${php_vars} &&\
