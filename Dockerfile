@@ -1,4 +1,4 @@
-FROM php:8.1.4-fpm-alpine3.15
+FROM php:7.4.28-fpm-alpine3.15
 
 LABEL maintainer="nICKZHUO <sidewindermax@hotmail.com>"
 
@@ -84,7 +84,8 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
     libjpeg-turbo-dev
 
 # 新php8不用mcrypt 加入apcu
-RUN pecl install redis && \
+RUN pecl install mcrypt && \
+    pecl install redis && \
     pecl install apcu
 
 # 跑GD要配置下
