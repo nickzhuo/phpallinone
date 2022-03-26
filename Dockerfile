@@ -107,10 +107,9 @@ RUN EXPECTED_COMPOSER_SIGNATURE=$(wget -q -O - https://composer.github.io/instal
     php -r "unlink('composer-setup.php');"
 
 # 安装pip相关    
-RUN pip install -U pip && \
-    pip install -U certbot && \
-    mkdir -p /etc/letsencrypt/webrootauth && \
-    apk del gcc musl-dev linux-headers libffi-dev augeas-dev make autoconf
+RUN pip install -U pip
+# 删除多余的
+RUN apk del gcc musl-dev linux-headers libffi-dev augeas-dev make autoconf
 
 # supervisor的配置文件复制过去
 # supervisor配置文件
