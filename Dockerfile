@@ -132,7 +132,7 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
     echo "opcache.enable=1" >> ${php_vars} &&\
     echo "opcache.enable_cli=1" >> ${php_vars} &&\
-    echo "opcache.memory_consumption=256" >> ${php_vars} &&\
+    echo "opcache.memory_consumption=512" >> ${php_vars} &&\
     echo "opcache.max_accelerated_files=20000" >> ${php_vars} &&\
     echo "opcache.validate_timestamps=0" >> ${php_vars} &&\
     # echo "opcache.jit=1205" >> ${php_vars} &&\
@@ -145,14 +145,15 @@ RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
     echo "memory_limit = 128M"  >> ${php_vars} && \
     echo "date.timezone =  Asia/Shanghai"  >> ${php_vars}
 
-# 优化 php-fpm 配置
+# 优化 php-fpm 配置 开发环境
 RUN sed -i \
     -e "s/;catch_workers_output\s*=\s*yes/catch_workers_output = yes/g" \
-    -e "s/pm.max_children = 5/pm.max_children = 4/g" \
+    -e "s/pm = dynamic/pm = static/g" \
+    -e "s/pm.max_children = 5/pm.max_children = 20/g" \
     -e "s/pm.start_servers = 2/pm.start_servers = 3/g" \
     -e "s/pm.min_spare_servers = 1/pm.min_spare_servers = 2/g" \
     -e "s/pm.max_spare_servers = 3/pm.max_spare_servers = 4/g" \
-    -e "s/;pm.max_requests = 500/pm.max_requests = 200/g" \
+    -e "s/;pm.max_requests = 500/pm.max_requests = 600/g" \
     -e "s/user = www-data/user = www/g" \
     -e "s/group = www-data/group = www/g" \
     -e "s/;listen.mode = 0660/listen.mode = 0666/g" \
