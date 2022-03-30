@@ -149,11 +149,11 @@ RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
 RUN sed -i \
     -e "s/;catch_workers_output\s*=\s*yes/catch_workers_output = yes/g" \
     -e "s/pm = dynamic/pm = static/g" \
-    -e "s/pm.max_children = 5/pm.max_children = 20/g" \
-    -e "s/pm.start_servers = 2/pm.start_servers = 3/g" \
-    -e "s/pm.min_spare_servers = 1/pm.min_spare_servers = 2/g" \
-    -e "s/pm.max_spare_servers = 3/pm.max_spare_servers = 4/g" \
-    -e "s/;pm.max_requests = 500/pm.max_requests = 600/g" \
+    -e "s/pm.max_children = 5/pm.max_children = 100/g" \
+    -e "s/pm.start_servers = 2/pm.start_servers = 8/g" \
+    -e "s/pm.min_spare_servers = 1/pm.min_spare_servers = 4/g" \
+    -e "s/pm.max_spare_servers = 3/pm.max_spare_servers = 8/g" \
+    -e "s/;pm.max_requests = 500/pm.max_requests = 2000/g" \
     -e "s/user = www-data/user = www/g" \
     -e "s/group = www-data/group = www/g" \
     -e "s/;listen.mode = 0660/listen.mode = 0666/g" \
