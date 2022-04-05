@@ -1,4 +1,5 @@
 FROM php:7.4.28-fpm-alpine3.15
+# FROM php:8.1.4-fpm-alpine3.15 8用
 
 LABEL maintainer="nICKZHUO <sidewindermax@hotmail.com>"
 
