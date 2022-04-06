@@ -74,7 +74,6 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
     gcc \
     musl-dev \
     linux-headers \
-    libmcrypt-dev \
     libpng-dev \
     icu-dev \
     libpq \
@@ -84,10 +83,11 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
     sqlite-dev \
     libjpeg-turbo-dev
 
-# 加入mcrypt 加入apcu
-RUN pecl install mcrypt && \
-    pecl install redis && \
-    pecl install apcu
+#PECL先update一下
+RUN pecl update-channels
+
+# 加入redis
+RUN pecl install redis
 
 # 跑GD要配置下
 RUN docker-php-ext-configure gd \
@@ -98,8 +98,6 @@ RUN docker-php-ext-configure gd \
 RUN docker-php-ext-install pdo_mysql mysqli gd exif fileinfo intl opcache
 
 RUN docker-php-ext-enable redis.so && \
-  docker-php-ext-enable mcrypt.so && \
-  docker-php-ext-enable apcu.so && \
   docker-php-source delete
 
 # 安装composer    
