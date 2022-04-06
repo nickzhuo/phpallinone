@@ -150,7 +150,7 @@ RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
 # 优化 php-fpm 配置 开发环境
 RUN sed -i \
     -e "s/;catch_workers_output\s*=\s*yes/catch_workers_output = yes/g" \
-    -e "s/;php_admin_value[error_log] = /var/log/fpm-php.www.log/php_admin_value[error_log] = /proc/self/fd/2/g" \
+    -e "s/;php_admin_value[error_log] = /var/log/fpm-php.www.log/php_admin_value[error_log] = /dev/stderr/g" \
     -e "s/pm = dynamic/pm = static/g" \
     -e "s/pm.max_children = 5/pm.max_children = 100/g" \
     -e "s/pm.start_servers = 2/pm.start_servers = 8/g" \
