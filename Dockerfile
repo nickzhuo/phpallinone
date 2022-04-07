@@ -11,7 +11,7 @@ ENV php_vars /usr/local/etc/php/conf.d/docker-vars.ini
 ENV NGINX_VERSION 1.21.6
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
-RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing gnu-libiconv
+RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
 
 RUN addgroup -S www \
   && adduser -D -S -h /var/cache/www -s /sbin/nologin -G www www \ 
@@ -145,12 +145,13 @@ RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
     echo "post_max_size = 100M"  >> ${php_vars} &&\
     echo "variables_order = \"EGPCS\""  >> ${php_vars} && \
     echo "memory_limit = 128M"  >> ${php_vars} && \
-    echo "date.timezone =  Asia/Shanghai"  >> ${php_vars}
+    echo "date.timezone = Asia/Shanghai"  >> ${php_vars}
 
 # 优化 php-fpm 配置 开发环境
+#-e "s/;php_admin_value\[error_log\] = \/var\/log\/fpm-php.www.log/php_admin_value\[error_log\] = \/proc\/1\/fd\/2/g" \
+
 RUN sed -i \
     -e "s/;catch_workers_output\s*=\s*yes/catch_workers_output = yes/g" \
-    -e "s/;php_admin_value\[error_log\] = \/var\/log\/fpm-php.www.log/php_admin_value\[error_log\] = \/dev\/stderr/g" \
     -e "s/pm = dynamic/pm = static/g" \
     -e "s/pm.max_children = 5/pm.max_children = 100/g" \
     -e "s/pm.start_servers = 2/pm.start_servers = 8/g" \
@@ -175,4 +176,6 @@ RUN chmod 755 /start.sh
 
 EXPOSE 80
 
+# 工作目录还是显示定义下
+WORKDIR "/var/www/html"
 CMD ["/start.sh"]
