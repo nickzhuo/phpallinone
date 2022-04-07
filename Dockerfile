@@ -39,8 +39,8 @@ RUN addgroup -S www \
     && cd /usr/src/nginx-$NGINX_VERSION \
     && ./configure --prefix=/usr/local/nginx \
       --user=www --group=www \
-      --error-log-path=/var/log/nginx_error.log \
-      --http-log-path=/var/log/nginx_access.log \
+      --error-log-path=/var/log/nginx/nginx_error.log \
+      --http-log-path=/var/log/nginx/nginx_access.log \
       --pid-path=/var/run/nginx.pid \
       --with-pcre \
       --with-http_ssl_module \
