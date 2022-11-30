@@ -177,5 +177,5 @@ RUN chmod 755 /start.sh
 EXPOSE 80
 
 # 工作目录还是显示定义下
-WORKDIR "/var/www/html"
+WORKDIR "/data/www"
 CMD ["/start.sh"]
