@@ -1,5 +1,4 @@
-FROM php:7.4.28-fpm-alpine3.15
-# FROM php:8.1.4-fpm-alpine3.15 8用
+FROM php:8.2.5-fpm-alpine3.17
 
 LABEL maintainer="nICKZHUO <sidewindermax@hotmail.com>"
 
@@ -8,7 +7,7 @@ ENV fpm_conf /usr/local/etc/php-fpm.d/www.conf
 ENV php_vars /usr/local/etc/php/conf.d/docker-vars.ini
 
 # Nginx版本
-ENV NGINX_VERSION 1.21.6
+ENV NGINX_VERSION 1.24.0
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
 RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
@@ -137,15 +136,15 @@ RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
     echo "opcache.memory_consumption=512" >> ${php_vars} &&\
     echo "opcache.max_accelerated_files=20000" >> ${php_vars} &&\
     echo "opcache.validate_timestamps=0" >> ${php_vars} &&\
-    # echo "opcache.jit=1205" >> ${php_vars} &&\
-    # echo "opcache.jit_buffer_size=64M" >> ${php_vars} &&\
-    echo "realpath_cache_size = 4096K" >> ${php_vars} &&\
-    echo "realpath_cache_ttl = 600" >> ${php_vars} &&\
-    echo "upload_max_filesize = 100M"  >> ${php_vars} &&\
-    echo "post_max_size = 100M"  >> ${php_vars} &&\
-    echo "variables_order = \"EGPCS\""  >> ${php_vars} && \
-    echo "memory_limit = 128M"  >> ${php_vars} && \
-    echo "date.timezone = Asia/Shanghai"  >> ${php_vars}
+    echo "opcache.jit=1205" >> ${php_vars} &&\
+    echo "opcache.jit_buffer_size=64M" >> ${php_vars} &&\
+    echo "realpath_cache_size=4096K" >> ${php_vars} &&\
+    echo "realpath_cache_ttl=600" >> ${php_vars} &&\
+    echo "upload_max_filesize=100M"  >> ${php_vars} &&\
+    echo "post_max_size=100M"  >> ${php_vars} &&\
+    echo "variables_order=\"EGPCS\""  >> ${php_vars} && \
+    echo "memory_limit=128M"  >> ${php_vars} && \
+    echo "date.timezone=Asia/Shanghai"  >> ${php_vars}
 
 # 优化 php-fpm 配置 开发环境
 #-e "s/;php_admin_value\[error_log\] = \/var\/log\/fpm-php.www.log/php_admin_value\[error_log\] = \/proc\/1\/fd\/2/g" \
@@ -177,5 +176,6 @@ RUN chmod 755 /start.sh
 EXPOSE 80
 
 # 工作目录还是显示定义下
-WORKDIR "/data/www"
+WORKDIR "/var"
+# 用CMD启动 方便run时候覆盖掉
 CMD ["/start.sh"]
