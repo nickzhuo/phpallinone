@@ -4,6 +4,7 @@
 
 ## 直接最新已构建完成镜像
 * 可以拉取腾讯云TKE镜像中心 ccr.ccs.tencentyun.com/zhouzhou/phpallinone
+* Docker官方HUB nickzhuo/phpallinone
 
 # 更新说明
 * 21.4.15 修正了基础镜像升级到alphine 3.13之后python相关编译出的问题。
