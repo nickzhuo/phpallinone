@@ -1,4 +1,4 @@
-FROM php:7-fpm-alpine
+FROM php:8.2.5-fpm-alpine3.17
 
 LABEL maintainer="nICKZHUO <sidewindermax@hotmail.com>"
 
@@ -7,10 +7,10 @@ ENV fpm_conf /usr/local/etc/php-fpm.d/www.conf
 ENV php_vars /usr/local/etc/php/conf.d/docker-vars.ini
 
 # Nginx版本
-ENV NGINX_VERSION 1.16.1
+ENV NGINX_VERSION 1.24.0
 
 ENV LD_PRELOAD /usr/lib/preloadable_libiconv.so php
-RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing gnu-libiconv
+RUN apk add --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community gnu-libiconv
 
 RUN addgroup -S www \
   && adduser -D -S -h /var/cache/www -s /sbin/nologin -G www www \ 
@@ -38,8 +38,8 @@ RUN addgroup -S www \
     && cd /usr/src/nginx-$NGINX_VERSION \
     && ./configure --prefix=/usr/local/nginx \
       --user=www --group=www \
-      --error-log-path=/var/log/nginx_error.log \
-      --http-log-path=/var/log/nginx_access.log \
+      --error-log-path=/var/log/nginx/nginx_error.log \
+      --http-log-path=/var/log/nginx/nginx_access.log \
       --pid-path=/var/run/nginx.pid \
       --with-pcre \
       --with-http_ssl_module \
@@ -48,7 +48,7 @@ RUN addgroup -S www \
       --with-http_gzip_static_module && \
       make && make install
 
-# alpine 3.13升级之后指定py 
+# alpine 3.13升级之后指定py3
 RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories && \
 #    sed -i -e "s/v3.4/edge/" /etc/apk/repositories && \
     echo /etc/apk/respositories && \
@@ -63,7 +63,7 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
     python3-dev \
     rust \
     cargo \
-    py-pip \
+    py3-pip \
     augeas-dev \
     openssl-dev \
     ca-certificates \
@@ -83,8 +83,11 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
     sqlite-dev \
     libjpeg-turbo-dev
 
-# 必须这样装mcrypt
-RUN pecl install mcrypt-1.0.3 && \
+#PECL先update一下
+RUN pecl update-channels
+
+# 加入redis
+RUN pecl install mcrypt && \
     pecl install redis
 
 # 跑GD要配置下
@@ -93,7 +96,7 @@ RUN docker-php-ext-configure gd \
       --with-freetype \
       --with-jpeg
 
-RUN docker-php-ext-install pdo_mysql mysqli gd exif fileinfo intl json opcache
+RUN docker-php-ext-install pdo_mysql mysqli gd exif fileinfo intl opcache
 
 RUN docker-php-ext-enable redis.so && \
   docker-php-ext-enable mcrypt.so && \
@@ -107,10 +110,9 @@ RUN EXPECTED_COMPOSER_SIGNATURE=$(wget -q -O - https://composer.github.io/instal
     php -r "unlink('composer-setup.php');"
 
 # 安装pip相关    
-RUN pip install -U pip && \
-    pip install -U certbot && \
-    mkdir -p /etc/letsencrypt/webrootauth && \
-    apk del gcc musl-dev linux-headers libffi-dev augeas-dev make autoconf
+RUN pip install -U pip
+# 删除多余的
+RUN apk del gcc musl-dev linux-headers libffi-dev augeas-dev make autoconf
 
 # supervisor的配置文件复制过去
 # supervisor配置文件
@@ -127,29 +129,34 @@ COPY ./conf/nginx/symfony.conf /usr/local/nginx/conf/vhost/
 # 修改 生产环境的 php.ini 基于默认的来吧
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-# 把需要覆盖的配置都放到一起
+# 把需要覆盖的配置都放到一起 加入php8的jit配置
 RUN echo "cgi.fix_pathinfo=0" > ${php_vars} &&\
     echo "opcache.enable=1" >> ${php_vars} &&\
     echo "opcache.enable_cli=1" >> ${php_vars} &&\
-    echo "opcache.memory_consumption=256" >> ${php_vars} &&\
+    echo "opcache.memory_consumption=512" >> ${php_vars} &&\
     echo "opcache.max_accelerated_files=20000" >> ${php_vars} &&\
     echo "opcache.validate_timestamps=0" >> ${php_vars} &&\
-    echo "realpath_cache_size = 4096K" >> ${php_vars} &&\
-    echo "realpath_cache_ttl = 600" >> ${php_vars} &&\
-    echo "upload_max_filesize = 100M"  >> ${php_vars} &&\
-    echo "post_max_size = 100M"  >> ${php_vars} &&\
-    echo "variables_order = \"EGPCS\""  >> ${php_vars} && \
-    echo "memory_limit = 128M"  >> ${php_vars} && \
-    echo "date.timezone =  Asia/Shanghai"  >> ${php_vars}
+    echo "opcache.jit=1205" >> ${php_vars} &&\
+    echo "opcache.jit_buffer_size=64M" >> ${php_vars} &&\
+    echo "realpath_cache_size=4096K" >> ${php_vars} &&\
+    echo "realpath_cache_ttl=600" >> ${php_vars} &&\
+    echo "upload_max_filesize=100M"  >> ${php_vars} &&\
+    echo "post_max_size=100M"  >> ${php_vars} &&\
+    echo "variables_order=\"EGPCS\""  >> ${php_vars} && \
+    echo "memory_limit=128M"  >> ${php_vars} && \
+    echo "date.timezone=Asia/Shanghai"  >> ${php_vars}
 
-# 优化 php-fpm 配置
+# 优化 php-fpm 配置 开发环境
+#-e "s/;php_admin_value\[error_log\] = \/var\/log\/fpm-php.www.log/php_admin_value\[error_log\] = \/proc\/1\/fd\/2/g" \
+
 RUN sed -i \
     -e "s/;catch_workers_output\s*=\s*yes/catch_workers_output = yes/g" \
-    -e "s/pm.max_children = 5/pm.max_children = 4/g" \
-    -e "s/pm.start_servers = 2/pm.start_servers = 3/g" \
-    -e "s/pm.min_spare_servers = 1/pm.min_spare_servers = 2/g" \
-    -e "s/pm.max_spare_servers = 3/pm.max_spare_servers = 4/g" \
-    -e "s/;pm.max_requests = 500/pm.max_requests = 200/g" \
+    -e "s/pm = dynamic/pm = static/g" \
+    -e "s/pm.max_children = 5/pm.max_children = 100/g" \
+    -e "s/pm.start_servers = 2/pm.start_servers = 8/g" \
+    -e "s/pm.min_spare_servers = 1/pm.min_spare_servers = 4/g" \
+    -e "s/pm.max_spare_servers = 3/pm.max_spare_servers = 8/g" \
+    -e "s/;pm.max_requests = 500/pm.max_requests = 2000/g" \
     -e "s/user = www-data/user = www/g" \
     -e "s/group = www-data/group = www/g" \
     -e "s/;listen.mode = 0660/listen.mode = 0666/g" \
@@ -168,4 +175,7 @@ RUN chmod 755 /start.sh
 
 EXPOSE 80
 
+# 工作目录还是显示定义下
+WORKDIR "/var"
+# 用CMD启动 方便run时候覆盖掉
 CMD ["/start.sh"]
