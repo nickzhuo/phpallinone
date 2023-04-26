@@ -37,7 +37,7 @@
 ## 快速使用说明
 * 可以使用`docker build`命令来构建属于自己的本地镜像，但是原则上不推荐，考虑到速度以及docker版本差异等。
 * 推荐使用在公开仓库发布的最新镜像，如下操作步骤。
-1. 启动`docker run -p 80:80 -v {项目在本地路径}:/data/www/ --name=myphp daocloud.io/nickzhuo/phpallinone:latest` 
+1. 启动`docker run -p 80:80 -v {项目在本地路径}:/data/www/ --name=myphp nickzhuo/phpallinone:latest` 
 2. `docker exec -it myphp bash`进入容器内
 3. 修改项目相应的配置文件
 4. 容器内修改权限`chown -R www:www /data/www`
