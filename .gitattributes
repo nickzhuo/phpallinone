@@ -1,0 +1,5 @@
+# 本仓库所有文件都要进 Linux 容器，统一强制 LF。
+# 没有这个文件时，Windows 上 core.autocrlf=true 的 checkout 会把 start.sh 写成 CRLF，
+# 容器里就会报 "bad interpreter: /bin/sh^M"。
+* text=auto eol=lf
+*.ico binary
