@@ -1,0 +1,131 @@
+name: Build and Push Image
+
+# 触发条件：
+#   - push 到 master          -> 构建并推 latest + 版本号标签
+#   - push 形如 v1.2.3 的 tag -> 额外推该 tag 名
+#   - 任意 Pull Request       -> 只构建 + 冒烟测试，不推送
+#   - 手动触发                -> Actions 页面点 Run workflow
+on:
+  push:
+    branches: [master]
+    tags: ['v*']
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: nickzhuo919/phpallinone
+  CCR_IMAGE: ccr.ccs.tencentyun.com/zhouzhou/phpallinone
+
+# 同一分支连推多次时，取消排队中的旧任务，避免浪费构建分钟
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 版本号从 Dockerfile 的 FROM 里取，避免工作流里写死第二份
+      - name: 从 Dockerfile 提取 PHP 版本
+        id: ver
+        run: |
+          V=$(grep -m1 '^FROM php:' Dockerfile | sed -E 's|.*php:([0-9]+\.[0-9]+\.[0-9]+).*|\1|')
+          if [ -z "$V" ]; then echo "无法从 Dockerfile 解析 PHP 版本"; exit 1; fi
+          echo "php=$V" >> "$GITHUB_OUTPUT"
+          echo "解析到 PHP 版本: $V"
+
+      # 和本地同一套检查：基础镜像、nginx sha256、composer 签名、COPY 源、LF 行尾、安全项
+      - name: 静态检查
+        run: bash verify.sh --static
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 没配 DOCKERHUB_TOKEN 时自动跳过登录与推送，工作流仍然只做构建验证
+      - name: 登录 Docker Hub
+        if: github.event_name != 'pull_request' && secrets.DOCKERHUB_TOKEN != ''
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 生成镜像标签
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/master' }}
+            type=raw,value=${{ steps.ver.outputs.php }}
+            type=ref,event=tag
+            type=sha,format=short
+
+      - name: 构建并推送
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          load: true
+          push: ${{ github.event_name != 'pull_request' && secrets.DOCKERHUB_TOKEN != '' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 推之前先证明镜像真的能跑，避免把坏镜像发出去
+      - name: 冒烟测试
+        run: |
+          IMG="${{ env.IMAGE_NAME }}:${{ steps.ver.outputs.php }}"
+          echo "测试镜像: $IMG"
+          docker run -d --name smoke "$IMG"
+          for i in $(seq 1 20); do
+            docker exec smoke supervisorctl status 2>/dev/null | grep -q 'php-fpm.*RUNNING' && break
+            sleep 2
+          done
+          docker exec smoke supervisorctl status
+          docker exec smoke php -v | head -1
+          docker exec smoke php -r 'exit(extension_loaded("Zend OPcache")?0:1);' && echo "opcache OK"
+          docker exec smoke sh -c 'wget -qO- http://127.0.0.1/ | grep -qi phpinfo' && echo "首页 OK"
+          docker rm -f smoke
+
+      # 可选：配了腾讯云凭据就顺带推 CCR。GitHub runner 在境外，跨境上传会慢一些
+      - name: 推送到腾讯云 CCR
+        if: github.event_name != 'pull_request' && secrets.TCR_PASSWORD != ''
+        env:
+          TCR_USERNAME: ${{ secrets.TCR_USERNAME }}
+          TCR_PASSWORD: ${{ secrets.TCR_PASSWORD }}
+        run: |
+          echo "$TCR_PASSWORD" | docker login ccr.ccs.tencentyun.com -u "$TCR_USERNAME" --password-stdin
+          V="${{ steps.ver.outputs.php }}"
+          SRC="${{ env.IMAGE_NAME }}:$V"
+          docker tag "$SRC" "${{ env.CCR_IMAGE }}:$V"
+          docker tag "$SRC" "${{ env.CCR_IMAGE }}:latest"
+          docker push "${{ env.CCR_IMAGE }}:$V"
+          docker push "${{ env.CCR_IMAGE }}:latest"
+
+      - name: 构建结果摘要
+        if: always()
+        run: |
+          {
+            echo "### 镜像构建结果"
+            echo ""
+            echo "| 项 | 值 |"
+            echo "|---|---|"
+            echo "| PHP 版本 | \`${{ steps.ver.outputs.php }}\` |"
+            echo "| 触发方式 | \`${{ github.event_name }}\` |"
+            echo "| 提交 | \`${{ github.sha }}\` |"
+            echo "| 已推送 | \`${{ github.event_name != 'pull_request' && secrets.DOCKERHUB_TOKEN != '' }}\` |"
+            echo ""
+            echo "\`\`\`"
+            echo "${{ steps.meta.outputs.tags }}"
+            echo "\`\`\`"
+          } >> "$GITHUB_STEP_SUMMARY"
