@@ -14,12 +14,16 @@
   PHP 8.2.5 → **8.2.35**、Nginx 1.24.0 → 1.30.6、Alpine 3.17 → 3.24。
   同时关掉 `session.upload_progress`（官方缓解项）、去掉失效的 LD_PRELOAD iconv hack、
   构建依赖改为用完即删、nginx 源码加 SHA256 校验。
+* 26.10.24 升级 **PHP 8.5.12**（8.2/8.4 的活跃支持都在 2026-12-31 结束，8.5 安全支持到 2029-12-31）。
+  - mcrypt 钉到 **1.0.9**：1.0.7 在 8.4/8.5 上能编译但运行时崩（`Undefined symbol "php_rand"`）
+  - **PHP 8.5 起 opcache 已静态编译进核心**，不能再 `docker-php-ext-install opcache`
+  - 运行期去掉 git / openssh-client / py3-pip（`python3` 保留，supervisor 依赖它）
 
-> **注意**：PHP 8.2 的安全支持 **2026-12-31 到期**，之后请迁移到 8.4.x。
+> **注意**：如需从 git source 安装 composer 包或拉 SSH 私有仓库，请在子镜像里自行补装 git / openssh-client。
 
 ## 配置
 * Nginx: 1.30.6
-* PHP: 8.2.35
+* PHP: 8.5.12
 * ALPINE: 3.24
 
 ## 详细说明
