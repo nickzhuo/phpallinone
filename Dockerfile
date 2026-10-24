@@ -26,6 +26,12 @@ ENV php_conf=/usr/local/etc/php-fpm.conf \
 # ---------------------------------------------------------------------------
 # 1. 运行期基础包 + www 用户
 #    注意：这里装的都是"最终镜像要留的"；构建期工具一律走 --virtual，用完即删
+#
+#    刻意不装 git / openssh-client / python3 / py3-pip：
+#      - 本镜像定位是"运行时"。composer 装依赖请用 --prefer-dist，
+#        delta 项目的 95 个依赖实测全部带 dist 包，不需要 git 命令
+#      - 若你的项目有包只能从 git source 安装，或要拉 SSH 私有仓库，
+#        请在自己的子镜像里补装 git / openssh-client
 # ---------------------------------------------------------------------------
 RUN set -eux; \
     addgroup -S www; \
@@ -34,16 +40,12 @@ RUN set -eux; \
         bash \
         ca-certificates \
         curl \
-        git \
+        freetype \
+        icu-libs \
         less \
         libjpeg-turbo \
         libmcrypt \
         libpng \
-        freetype \
-        icu-libs \
-        openssh-client \
-        python3 \
-        py3-pip \
         supervisor \
         tzdata \
         vim \
