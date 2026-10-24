@@ -101,9 +101,16 @@ jobs:
           docker exec smoke sh -c 'wget -qO- http://127.0.0.1/ | grep -qi phpinfo' && echo "首页 OK"
           docker rm -f smoke
 
-      # 可选：配了腾讯云凭据就顺带推 CCR。GitHub runner 在境外，跨境上传会慢一些
+      # 可选：配了腾讯云凭据才推 CCR。
+      # 两点约束（都是踩过的坑）：
+      #   1. 只在打 v* tag 时推。CCR 是给国内服务器用的，日常 master push 没必要同步，
+      #      否则每次提交都要多传 80MB 到腾讯云。
+      #   2. GitHub runner 在境外，跨境上传极慢（实测 20 分钟都没传完），
+      #      所以加超时 + continue-on-error：传不上去只影响这一步，不拖垮整个发布。
       - name: 推送到腾讯云 CCR
-        if: github.event_name != 'pull_request' && env.HAS_TCR_PASSWORD == 'true'
+        if: startsWith(github.ref, 'refs/tags/v') && env.HAS_TCR_PASSWORD == 'true'
+        timeout-minutes: 15
+        continue-on-error: true
         env:
           TCR_USERNAME: ${{ secrets.TCR_USERNAME }}
           TCR_PASSWORD: ${{ secrets.TCR_PASSWORD }}
