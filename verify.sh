@@ -30,10 +30,12 @@ STATIC_ONLY=0
 head_ "1. 静态检查"
 
 BASE=$(grep -m1 '^FROM ' Dockerfile | awk '{print $2}')
-case "$BASE" in
-  php:8.2.35-fpm-alpine3.24) ok "基础镜像 $BASE" ;;
-  *) bad "基础镜像异常: $BASE（期望 php:8.2.35-fpm-alpine3.24）" ;;
-esac
+# 不锁死具体版本，只要求是 php:8.x.y-fpm-alpine 形式，具体安全性在第 4 步判断
+if echo "$BASE" | grep -qE '^php:8\.[2-9]\.[0-9]+-fpm-alpine'; then
+  ok "基础镜像 $BASE"
+else
+  bad "基础镜像格式异常: $BASE（期望 php:8.x.y-fpm-alpine）"
+fi
 
 NGX_VER=$(awk -F= '/^ *NGINX_VERSION=/{gsub(/[ \t\\]/,"",$2); print $2; exit}' Dockerfile)
 NGX_SUM=$(awk -F= '/^ *NGINX_SHA256=/{gsub(/[ \t\\]/,"",$2); print $2; exit}' Dockerfile)
@@ -125,11 +127,26 @@ docker exec "$NAME" supervisorctl status 2>/dev/null | grep -q 'nginx.*RUNNING' 
 
 # --- 4. php2shell 修复校验 -------------------------------------------------
 head_ "4. php2shell 修复校验"
+
+# 每个分支的最小安全版本不同，不能只跟 8.2.35 比大小
+min_safe_version() {
+  case "$1" in
+    8.2.*) echo "8.2.35" ;;
+    8.3.*) echo "8.3.36" ;;
+    8.4.*) echo "8.4.27" ;;
+    8.5.*) echo "8.5.12" ;;
+    *)     echo "" ;;
+  esac
+}
+
 PV=$(docker exec "$NAME" php -r 'echo PHP_VERSION;' 2>/dev/null | tr -d '\r')
-if [ "$(printf '%s\n8.2.35\n' "$PV" | sort -V | head -1)" = "8.2.35" ]; then
-  ok "PHP $PV >= 8.2.35（CVE-2026-109618/109619 已修复）"
+MIN=$(min_safe_version "$PV")
+if [ -z "$MIN" ]; then
+  bad "PHP $PV 不在已知安全分支（8.2/8.3/8.4/8.5），需人工确认"
+elif [ "$(printf '%s\n%s\n' "$PV" "$MIN" | sort -V | head -1)" = "$MIN" ]; then
+  ok "PHP $PV >= $MIN（CVE-2026-109618/109619 已修复）"
 else
-  bad "PHP $PV 低于 8.2.35，仍受 php2shell 影响"
+  bad "PHP $PV 低于 $MIN，仍受 php2shell 影响"
 fi
 
 # php -i 输出形如 "session.upload_progress.enabled => Off => Off"，第 3 列才是值

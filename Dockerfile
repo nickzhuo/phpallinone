@@ -1,14 +1,16 @@
 # ---------------------------------------------------------------------------
 # 全功能 PHP 栈：Nginx + PHP-FPM + Supervisor（面向 Symfony）
 #
+# 【2026-10-24 升级：PHP 8.2 -> 8.5】
+#   8.2 安全支持 2026-12-31 到期；8.4 的 active support 同样在 2026-12-31 结束。
+#   8.5 active 到 2027-12-31、security 到 2029-12-31，故一步到位跳 8.5。
+#
 # 【2026-10-22 安全升级：php2shell】
 #   CVE-2026-109618 / CVE-2026-109619，UAF -> 未授权 RCE，CVSS 4.0 = 9.2
 #   官方修复版本：8.5.12 / 8.4.27 / 8.3.36 / 8.2.35
-#   本镜像：PHP 8.2.5  ->  8.2.35
-#   注意  ：PHP 8.2 安全支持只到 2026-12-31，之后必须迁 8.4.x
 # ---------------------------------------------------------------------------
 
-FROM php:8.2.35-fpm-alpine3.24
+FROM php:8.5.12-fpm-alpine3.24
 
 LABEL org.opencontainers.image.title="phpallinone" \
       org.opencontainers.image.description="Nginx + PHP-FPM + Supervisor all-in-one image for Symfony (OPcache + JIT)" \
@@ -98,7 +100,9 @@ RUN set -eux; \
         autoconf gcc make musl-dev linux-headers \
         icu-dev libjpeg-turbo-dev libmcrypt-dev libpng-dev freetype-dev; \
     pecl update-channels; \
-    pecl install mcrypt redis; \
+    # mcrypt 必须 >= 1.0.9：1.0.7 在 PHP 8.4/8.5 上能编译通过但运行时崩
+    # （Undefined symbol "php_rand"），1.0.9 的 changelog 明确支持 8.4/8.5
+    pecl install mcrypt-1.0.9 redis; \
     docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg; \
     docker-php-ext-install -j"$(nproc)" pdo_mysql mysqli gd exif fileinfo intl opcache; \
     docker-php-ext-enable redis mcrypt; \
