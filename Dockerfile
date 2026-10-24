@@ -104,7 +104,10 @@ RUN set -eux; \
     # （Undefined symbol "php_rand"），1.0.9 的 changelog 明确支持 8.4/8.5
     pecl install mcrypt-1.0.9 redis; \
     docker-php-ext-configure gd --enable-gd --with-freetype --with-jpeg; \
-    docker-php-ext-install -j"$(nproc)" pdo_mysql mysqli gd exif fileinfo intl opcache; \
+    # 注意：PHP 8.5 起 opcache 已静态编译进 PHP 核心（镜像里 php -m 直接有 Zend OPcache），
+    # 不能再走 docker-php-ext-install opcache —— 那会因为 ext/opcache 不产出 modules/*.so 而失败：
+    #   cp: can't stat 'modules/*': No such file or directory
+    docker-php-ext-install -j"$(nproc)" pdo_mysql mysqli gd exif fileinfo intl; \
     docker-php-ext-enable redis mcrypt; \
     docker-php-source delete; \
     rm -rf /tmp/pear; \
